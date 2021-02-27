@@ -1,0 +1,4 @@
+# Carpeta del IDE
+/.vscode/
+#Archivos
+*.iml
