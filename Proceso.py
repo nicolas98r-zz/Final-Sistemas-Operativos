@@ -12,27 +12,57 @@ class Proceso:
 class RoundRobin:
     def __init__(self, quantum):
         self.__procesos = []
-        self.grafico = Grafica()
+        self.grafico = None
         self.quantum = quantum
 
     def añadir_proceso(self, proceso):
         self.__procesos.append(proceso)
-
-    def calcular(self):
-        i = 0
-        obj_pro = self.__procesos[i]
-        self.grafico.agregar_barras(obj_pro.tiempo_ini, obj_pro.tiempo_eje, obj_pro.nombre, "g")
-        self.grafico.mostrar()
-        print (obj_pro)
         
+    
+    def dibujar_grafico(self):
+        lista_com = []
+        pos = self.__procesos[0].tiempo_ini
+        self.grafico = Grafico(self.__generar_etiquetas())
 
+        #Para 1 parte: Los bloqueos
+        for i in range(len(self.__procesos)):
+            obj_pro = self.__procesos[i]
+            self.grafico.agregar_barras(obj_pro.tiempo_ini, pos, obj_pro.nombre, "lightgray")
+            if (self.quantum < obj_pro.tiempo_eje): #Si el quantum NO cubre el proceso
+                self.grafico.agregar_barras(pos, self.quantum, obj_pro.nombre, "g")
+                if (obj_pro.bloqueo_ini <= self.quantum): #Inicia Bloqueo
+                    pos = pos + obj_pro.bloqueo_ini
+                    self.grafico.agregar_barras(pos, obj_pro.bloqueo_dur, obj_pro.nombre, "r")
+                else: pos = self.quantum + pos
+                lista_com.append(obj_pro)
+            else:   #Si el quantum cubre el proceso
+                self.grafico.agregar_barras(pos, obj_pro.tiempo_eje, obj_pro.nombre, "g") 
+                if (obj_pro.bloqueo_ini <= self.quantum): #Inicia Bloqueo
+                    pos = pos + obj_pro.bloqueo_ini
+                    self.grafico.agregar_barras(pos, obj_pro.bloqueo_dur, obj_pro.nombre, "r")
+                    lista_com.append(obj_pro)
+                else: pos = obj_pro.tiempo_eje + pos
+        
+        #Para 2 parte: Algoritmo
+        """ while lista_com:
+            print("Elemento") """
+            
+        self.grafico.mostrar()
 
-class Grafica:
-    def __init__(self):
-        self.__horizonte = 6
+    #Agrega los nombres de los procesos a las etiquetas de la grafica
+    def __generar_etiquetas(self):
+        nombre_pro = []
+        for i in range(len(self.__procesos)):   
+            obj_nom = self.__procesos[i].nombre
+            nombre_pro.append(obj_nom)
+        return nombre_pro
+
+class Grafico:
+    def __init__(self, nombre_pro):
+        self.__horizonte = 60
         self.__ticks = 10
         self.__altura_bar = 2
-        self.__nombre_pro = ["Windows"]
+        self.__nombre_pro = nombre_pro
         self.__numero_pro = len(self.__nombre_pro)
 
         self.__fig, self.__diagrama = plt.subplots() 
@@ -62,7 +92,12 @@ class Grafica:
         # Posición de la barra:
         self.__diagrama.broken_barh([(tiempo_ini, duracion)], (self.__altura_bar*obj_pro, self.__altura_bar), facecolors=(color))
 
-p = Proceso("Windows", 0, 6, 3, 1)
-pp = RoundRobin(25)
-pp.añadir_proceso(p)
-pp.calcular()
+p = RoundRobin(3)
+l1 = Proceso("Windows", 0, 9, 1, 2)
+l2 = Proceso("Power point", 1, 2, 2, 2)
+l3 = Proceso("Calculadora", 1, 5, 6, 1)
+p.añadir_proceso(l1)
+p.añadir_proceso(l2)
+p.añadir_proceso(l3)
+p.dibujar_grafico()
+ 
