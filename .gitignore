@@ -1,4 +1,6 @@
 # Carpeta del IDE
 /.vscode/
+/__pycache__/
 #Archivos
 *.iml
+*.pyc
